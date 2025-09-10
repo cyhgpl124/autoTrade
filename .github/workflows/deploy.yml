@@ -7,28 +7,21 @@ on:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
-
-    # ⭐️ [수정] 아래 권한 블록을 추가해주세요. ⭐️
-    # 이 작업(job)이 저장소 컨텐츠를 쓸 수 있도록 허용합니다.
     permissions:
       contents: write
 
     steps:
-      # 1. Checkout code (이하 동일)
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Setup Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
 
-      # 3. Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # 4. Build Flutter Web
       - name: Build Flutter Web
         run: |
           flutter build web --release \
@@ -40,7 +33,6 @@ jobs:
           --dart-define=FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }} \
           --dart-define=FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}
 
-      # 5. Deploy
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
