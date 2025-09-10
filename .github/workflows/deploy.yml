@@ -1,33 +1,34 @@
-# GitHub Actions 워크플로우의 이름
 name: Deploy Flutter Web to GitHub Pages
 
-# main 브랜치에 코드가 push될 때 실행
 on:
   push:
     branches: [ main ]
 
 jobs:
   build_and_deploy:
-    # 작업이 실행될 가상 환경
     runs-on: ubuntu-latest
 
+    # ⭐️ [수정] 아래 권한 블록을 추가해주세요. ⭐️
+    # 이 작업(job)이 저장소 컨텐츠를 쓸 수 있도록 허용합니다.
+    permissions:
+      contents: write
+
     steps:
-      # 1. 저장소의 코드를 가상 환경으로 가져옴
+      # 1. Checkout code (이하 동일)
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Flutter SDK 설정
+      # 2. Setup Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
 
-      # 3. Flutter 패키지 다운로드
+      # 3. Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # 4. Flutter 웹 빌드
-      # GitHub Secrets 값을 --dart-define을 통해 빌드 시 주입
+      # 4. Build Flutter Web
       - name: Build Flutter Web
         run: |
           flutter build web --release \
@@ -37,11 +38,11 @@ jobs:
           --dart-define=FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }} \
           --dart-define=FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }} \
           --dart-define=FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }} \
-          --dart-define=FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBEASE_STORAGE_BUCKET }}
+          --dart-define=FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}
 
-      # 5. 빌드된 결과물을 GitHub Pages로 배포
+      # 5. Deploy
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/web # 빌드 결과물이 있는 폴더
+          publish_dir: ./build/web
