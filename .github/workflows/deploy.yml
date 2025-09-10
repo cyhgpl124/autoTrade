@@ -1,59 +1,47 @@
-# .github/workflows/deploy.yml
+# GitHub Actions 워크플로우의 이름
 name: Deploy Flutter Web to GitHub Pages
 
-# main 브랜치에 push 이벤트가 발생했을 때만 워크플로우를 실행합니다.
+# main 브랜치에 코드가 push될 때 실행
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  build-and-deploy:
-    permissions:
-      contents: write
-    # 실행 환경을 최신 우분투로 설정합니다.
+  build_and_deploy:
+    # 작업이 실행될 가상 환경
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 저장소 코드를 체크아웃합니다. (가장 먼저 실행되어야 합니다)
-      - name: Checkout
-        uses: actions/checkout@v4
+      # 1. 저장소의 코드를 가상 환경으로 가져옴
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      # 2. Flutter SDK를 설치합니다.
-      - name: Set up Flutter
+      # 2. Flutter SDK 설정
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
 
-      # 3. (선택사항) google-services.json 파일 생성
-      # GitHub Secrets에 저장해둔 Base64 문자열을 가져와서 디코딩합니다.
-      - name: Decode google-services.json
-        run: echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
-
-      # 4. Flutter 의존성을 설치합니다.
+      # 3. Flutter 패키지 다운로드
       - name: Install dependencies
         run: flutter pub get
 
-      # 5. Flutter 웹을 빌드합니다.
-      - name: Build Flutter web
-        run: flutter build web --release --base-href /stock/
-          --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
-          --dart-define=FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}
-          --dart-define=FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
-          --dart-define=FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
-          --dart-define=FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }}
-          --dart-define=FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}
+      # 4. Flutter 웹 빌드
+      # GitHub Secrets 값을 --dart-define을 통해 빌드 시 주입
+      - name: Build Flutter Web
+        run: |
+          flutter build web --release \
+          --base-href /stock/ \
+          --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
+          --dart-define=FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }} \
+          --dart-define=FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }} \
+          --dart-define=FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }} \
+          --dart-define=FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }} \
+          --dart-define=FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBEASE_STORAGE_BUCKET }}
 
-
-      # 6. Jekyll을 비활성화하여 index.html이 올바르게 표시되도록 합니다.
-      - name: Disable Jekyll
-        run: touch build/web/.nojekyll
-
-      # 7. 빌드된 결과물을 GitHub Pages에 배포합니다.
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      # 5. 빌드된 결과물을 GitHub Pages로 배포
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          # 배포에 필요한 GitHub 토큰입니다.
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # 빌드된 웹 파일이 있는 디렉토리를 지정합니다.
-          publish_dir: ./build/web
+          publish_dir: ./build/web # 빌드 결과물이 있는 폴더
