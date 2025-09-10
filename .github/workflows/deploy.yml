@@ -36,7 +36,7 @@ jobs:
 
       # 5. Flutter 웹을 빌드합니다.
       - name: Build Flutter web
-        run: flutter build web --release --base-href /stock/
+        run: flutter build web --release --base-href /autoTrade/
           --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
           --dart-define=FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}
           --dart-define=FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
